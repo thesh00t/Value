@@ -1,85 +1,57 @@
 
-1. Импорт модулей:
-      import tkinter as tk
-   from tkinter import messagebox
-   import random
-   import string
+
+1. Импорт модуля:
+      import requests
    
-   Здесь мы импортируем необходимые модули. tkinter используется для создания графического интерфейса, random для генерации случайных паролей, а string включает в себя предопределенные наборы символов.
+   Модуль requests используется для выполнения HTTP-запросов к API, чтобы получить актуальные данные о курсе валют.
 
-2. Функция генерации пароля:
-      def generate_password(length, use_lowercase, use_digits, use_special):
-       chars = ""
-       if use_lowercase:
-           chars += string.ascii_lowercase
-       if use_digits:
-           chars += string.digits
-       if use_special:
-           chars += "!@#$%"
+2. Функция получения курса валют:
+      def get_exchange_rate():
+       try:
+           response = requests.get("https://api.exchangerate-api.com/v4/latest/RUB")
+           data = response.json()
+           return data['rates']['USD']
+       except Exception as e:
+           print("Ошибка при получении курса валют:", e)
+           return None
    
-   Эта функция принимает параметры: length (длина пароля) и флаги для каждого типа символов. В зависимости от установленных флагов она формирует строку доступных символов для генерации пароля.
+   Эта функция отправляет запрос к API и получает актуальный курс рубля по отношению к доллару. 
 
-3. Проверка на наличие символов:
-      if not chars:
-       messagebox.showwarning("Warning", "Выберите хотя бы один тип символов!")
-       return ""
+   - Если запрос успешен, данные преобразуются в формат JSON и возвращается курс доллара.
+   - В случае ошибки (например, из-за проблем с соединением) выводится сообщение об ошибке.
+
+3. Функция конвертации валют:
+      def convert_rub_to_usd(rubles, exchange_rate):
+       return rubles * exchange_rate
    
-   Если пользователь не выбрал ни одного типа символов, появляется предупреждение.
+   Данная функция принимает сумму в рублях и курс обмена, возвращая эквивалентную сумму в долларах США.
 
-4. Генерация пароля:
-      password = ''.join(random.choice(chars) for _ in range(length))
-   return password
+4. Основная функция:
+      def main():
+       print("Добро пожаловать в конвертер валют!")
+       exchange_rate = get_exchange_rate()
+
+       if exchange_rate is None:
+           print("Не удалось получить курс валют. Закрытие программы.")
+           return
+
+       print(f"Актуальный курс: 1 RUB = {exchange_rate:.2f} USD")
+
+       while True:
+           try:
+               rubles = float(input("Введите сумму в рублях (или 'exit' для выхода): "))
+               dollars = convert_rub_to_usd(rubles, exchange_rate)
+               print(f"{rubles} RUB = {dollars:.2f} USD")
+           except ValueError:
+               print("Ввод завершен. Выход из программы.")
+               break
    
-   Здесь генерируется пароль путем случайного выбора символов из созданной строки chars.
+   - Программа приветствует пользователя и получает актуальный курс валют.
+   - Если курс не удалось получить, программа информирует об этом и завершает свою работу.
+   - В цикле while программа запрашивает у пользователя ввод суммы в рублях, производит конвертацию и выводит результат. 
+   - Если ввести некорректные данные (например, текст), программа завершает работу.
 
-5. Обработчик события нажатия кнопки:
-      def on_generate():
-       length = int(entry_length.get())
-       use_lowercase = var_lowercase.get()
-       use_digits = var_digits.get()
-       use_special = var_special.get()
-
-       password = generate_password(length, use_lowercase, use_digits, use_special)
-       label_result.config(text=password)
+5. Проверка запуска программы:
+      if __name__ == "__main__":
+       main()
    
-   Эта функция считывает параметры из интерфейса при нажатии кнопки "Сгенерировать пароль" и вызывает функцию generate_password. Генерированный пароль отображается на метке.
-
-6. Создание основного окна:
-      root = tk.Tk()
-   root.title("Генератор паролей")
-   
-   Здесь создается основное окно приложения и задается его заголовок.
-
-7. Поле ввода длины пароля:
-      label_length = tk.Label(root, text="Длина пароля:")
-   label_length.pack()
-
-   entry_length = tk.Entry(root)
-   entry_length.pack()
-   entry_length.insert(0, "12")
-   
-   Создается метка и поле ввода для длины пароля с значением по умолчанию 12.
-
-8. Чекбоксы для выбора параметров:
-      var_lowercase = tk.BooleanVar()
-   checkbox_lowercase = tk.Checkbutton(root, text="Включить нижний регистр [a-z]", variable=var_lowercase)
-   checkbox_lowercase.pack()
-   
-   Здесь создаются чекбоксы, которые позволяют пользователю выбрать, будут ли использоваться строчные буквы, цифры и специальные символы.
-
-9. Кнопка генерации пароля:
-      button_generate = tk.Button(root, text="Сгенерировать пароль", command=on_generate)
-   button_generate.pack()
-   
-   Создается кнопка, которая вызывает функцию on_generate при нажатии.
-
-10. Метка для отображения результата:
-        label_result = tk.Label(root, text="", font=("Helvetica", 16))
-    label_result.pack()
-    
-    Здесь создается метка, где будет отображаться сгенерированный пароль.
-
-11. Запуск основного цикла приложения:
-        root.mainloop()
-    
-  
